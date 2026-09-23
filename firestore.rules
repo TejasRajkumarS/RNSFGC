@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    function isPrincipal() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'PRINCIPAL';
+    }
+
+    function isHod() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'HOD';
+    }
+
+    function isCoordinator() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'EVENT_COORDINATOR';
+    }
+
+    function userDept() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.department_id;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if false;
+    }
+
+    match /departments/{deptId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /events/{eventId} {
+      // Mirrors the API list policy: students/faculty must not read drafts or
+      // rejected/cancelled events by guessing IDs.
+      allow read: if isSignedIn() && (
+        resource.data.status in ['APPROVED', 'SCHEDULED', 'CONDUCTED', 'COMPLETED', 'REPORT_SUBMITTED'] ||
+        isAdmin() ||
+        isPrincipal() ||
+        (isHod() && resource.data.department_id == userDept()) ||
+        (isCoordinator() && resource.data.coordinator_id == request.auth.uid)
+      );
+      allow write: if false;
+    }
+
+    match /registrations/{regId} {
+      allow read: if isSignedIn() && (
+        resource.data.user_uid == request.auth.uid ||
+        isAdmin() ||
+        (isHod() && get(/databases/$(database)/documents/events/$(resource.data.event_id)).data.department_id == userDept()) ||
+        (isCoordinator() && get(/databases/$(database)/documents/events/$(resource.data.event_id)).data.coordinator_id == request.auth.uid)
+      );
+      // All writes go through API routes (Admin SDK): direct client writes would
+      // bypass the capacity transaction, duplicate check, status gate, and audit log.
+      allow write: if false;
+    }
+
+    match /audit_logs/{logId} {
+      allow read, write: if false;
+    }
+
+    // Feature collections — all client access goes through API routes (Admin SDK).
+    // Direct client access is denied; the Admin SDK bypasses these rules.
+    match /attendance/{attendanceId} {
+      allow read, write: if false;
+    }
+
+    match /documents/{documentId} {
+      allow read, write: if false;
+    }
+
+    match /expenses/{expenseId} {
+      allow read, write: if false;
+    }
+
+    match /reports/{reportId} {
+      allow read, write: if false;
+    }
+
+    match /certificates/{certificateId} {
+      allow read, write: if false;
+    }
+  }
+}

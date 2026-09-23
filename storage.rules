@@ -1,0 +1,12 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // All uploads and deletions happen server-side via the Admin SDK
+    // (which bypasses these rules). Note: uploaded objects receive a public ACL
+    // by the server today, so possession of an object URL grants read access
+    // regardless of these rules — treat document URLs as unguessable-but-public.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
