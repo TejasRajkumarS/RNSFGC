@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import PageShell from "@/components/PageShell";
+import PageShell from "@/components/layout/PageShell";
 import { type CollegeEvent } from "@/data/events";
 import { listPublicEvents, toCollegeEvent } from "@/lib/services/events";
 import { getSessionUser } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
-import DeleteEventButton from "@/components/DeleteEventButton";
+import DeleteEventButton from "@/components/events/DeleteEventButton";
+import RegistrationRequestButton from "@/components/events/RegistrationRequestButton";
 
 export const metadata: Metadata = {
   title: "Event Registration — RNS First Grade College",
@@ -40,8 +41,8 @@ export default async function RegistrationPage() {
             i
           </span>
           <p className="text-sm leading-relaxed text-navy-950/75">
-            Registrations are confirmed by the admissions office over email. Select an event below — a pre-addressed
-            message will open in your email application, and the team will respond with next steps.
+            Registrations are confirmed by the admissions office over email. Pick an event below, fill in your details,
+            and your request goes straight to the team — they will respond with next steps.
           </p>
         </div>
 
@@ -66,14 +67,7 @@ export default async function RegistrationPage() {
 
               <div className="flex flex-col items-stretch gap-2 md:items-end">
                 {canDelete && event.id && <DeleteEventButton eventId={event.id} />}
-                <a
-                  href={`mailto:admissions@rnsfc.example.com?subject=${encodeURIComponent(
-                    `Event Registration: ${event.title}`
-                  )}`}
-                  className="whitespace-nowrap rounded-md bg-gold px-6 py-3.5 text-center text-[11px] font-extrabold uppercase tracking-[0.16em] text-navy-950 transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-light focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-                >
-                  Send Request
-                </a>
+                {event.id && <RegistrationRequestButton eventId={event.id} eventTitle={event.title} />}
               </div>
             </article>
           ))}

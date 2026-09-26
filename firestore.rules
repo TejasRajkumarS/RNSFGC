@@ -85,5 +85,9 @@ service cloud.firestore {
     match /certificates/{certificateId} {
       allow read, write: if false;
     }
+
+    match /registration_requests/{requestId} {
+      allow read, write: if false;
+    }
   }
 }

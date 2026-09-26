@@ -35,7 +35,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ui
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ uid: string }> }): Promise<NextResponse> {
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ uid: string }> }
+): Promise<NextResponse> {
   try {
     const actor = await requirePermission("users.delete");
     const { uid } = await params;

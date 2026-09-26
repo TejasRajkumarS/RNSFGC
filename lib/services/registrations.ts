@@ -77,6 +77,55 @@ export async function registerForEvent(
   return registration;
 }
 
+export interface RegistrationRequestInput {
+  event_id: string;
+  full_name: string;
+  email: string;
+  message?: string;
+}
+
+// Public site visitors (no account) send registration requests to the
+// admissions team. Stored for staff review; the Admin SDK bypasses
+// firestore.rules, and the API route rate-limits abuse.
+export async function createRegistrationRequest(
+  input: RegistrationRequestInput
+): Promise<{ id: string; status: string }> {
+  const db = getAdminDb();
+  const eventRef = db.collection("events").doc(input.event_id);
+  const eventDoc = await eventRef.get();
+  if (!eventDoc.exists) throw new AuthError(404, "NOT_FOUND", "Event not found");
+
+  const event = eventDoc.data() as { status?: string; title?: string };
+  if (!REGISTRATION_OPEN_STATUSES.includes(event.status ?? "")) {
+    throw new AuthError(409, "WORKFLOW_CONFLICT", "Registration not open for this event");
+  }
+
+  const dupQuery = db
+    .collection("registration_requests")
+    .where("event_id", "==", input.event_id)
+    .where("email", "==", input.email)
+    .where("status", "==", "PENDING")
+    .limit(1);
+  const dupSnap = await dupQuery.get();
+  if (!dupSnap.empty) {
+    throw new AuthError(409, "DUPLICATE_REGISTRATION", "A request for this event was already sent from this email");
+  }
+
+  const now = new Date();
+  const ref = db.collection("registration_requests").doc();
+  await ref.set({
+    event_id: input.event_id,
+    event_title: event.title ?? "",
+    full_name: input.full_name,
+    email: input.email,
+    message: input.message ?? "",
+    status: "PENDING",
+    created_at: now,
+    updated_at: now,
+  });
+  return { id: ref.id, status: "PENDING" };
+}
+
 export async function cancelRegistration(user: SessionUser, registrationId: string): Promise<void> {
   const db = getAdminDb();
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import EventNavigation from "./EventNavigation";
+import EventNavigation from "../events/EventNavigation";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 

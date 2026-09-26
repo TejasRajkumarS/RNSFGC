@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import PageShell from "@/components/PageShell";
+import PageShell from "@/components/layout/PageShell";
 import { type CollegeEvent } from "@/data/events";
 import { listPublicEvents, toCollegeEvent } from "@/lib/services/events";
 import { getSessionUser } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/auth/permissions";
-import DeleteEventButton from "@/components/DeleteEventButton";
+import DeleteEventButton from "@/components/events/DeleteEventButton";
 
 export const metadata: Metadata = {
   title: "Event Calendar — RNS First Grade College",

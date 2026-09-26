@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { type Event, type EventStatus } from "@/lib/workflows/events";
+
+function formatDate(value: string | Date | null) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
 function getStatusBadge(status: EventStatus) {
   const colors: Record<EventStatus, string> = {
@@ -28,6 +37,7 @@ export default function ApprovalsDashboardClient() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -87,39 +97,124 @@ export default function ApprovalsDashboardClient() {
         </div>
       ) : (
         <div className="space-y-4">
-          {events.map((event) => (
-            <div key={event.id} className="rounded-xl border border-navy-950/10 bg-white p-6 shadow-card">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-display text-lg font-semibold text-navy-950">{event.title}</h3>
-                    {getStatusBadge(event.status)}
+          {events.map((event) => {
+            const isExpanded = expandedId === event.id;
+            return (
+              <div key={event.id} className="rounded-xl border border-navy-950/10 bg-white p-6 shadow-card">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-display text-lg font-semibold text-navy-950">{event.title}</h3>
+                      {getStatusBadge(event.status)}
+                    </div>
+                    <p className="text-sm text-navy-950/60 mb-2">{event.description}</p>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-navy-950/60">
+                      <span>Category: {event.category.replace("_", " ")}</span>
+                      <span>Department: {event.department_id}</span>
+                      <span>Coordinator: {event.coordinator_id}</span>
+                      {event.venue && <span>Venue: {event.venue}</span>}
+                      {event.scheduled_at && <span>Date: {new Date(event.scheduled_at).toLocaleDateString()}</span>}
+                    </div>
                   </div>
-                  <p className="text-sm text-navy-950/60 mb-2">{event.description}</p>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-navy-950/60">
-                    <span>Category: {event.category.replace("_", " ")}</span>
-                    <span>Coordinator: {event.coordinator_id}</span>
-                    {event.venue && <span>Venue: {event.venue}</span>}
-                    {event.scheduled_at && <span>Date: {new Date(event.scheduled_at).toLocaleDateString()}</span>}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : event.id)}
+                      aria-expanded={isExpanded}
+                      className="rounded-md border border-navy-950/20 px-4 py-2 text-sm font-semibold text-navy-950 hover:bg-navy-950/5 transition-colors"
+                    >
+                      {isExpanded ? "Hide Details" : "View Details"}
+                    </button>
+                    <button
+                      onClick={() => handleAction(event.id, "approve")}
+                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleAction(event.id, "reject")}
+                      className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                    >
+                      Reject
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleAction(event.id, "approve")}
-                    className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleAction(event.id, "reject")}
-                    className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
-                  >
-                    Reject
-                  </button>
-                </div>
+
+                {isExpanded && (
+                  <div className="mt-5 border-t border-navy-950/10 pt-5">
+                    <dl className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">Event ID</dt>
+                        <dd className="mt-0.5 text-navy-950">{event.id}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">Category</dt>
+                        <dd className="mt-0.5 text-navy-950">{event.category.replace("_", " ")}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">Department</dt>
+                        <dd className="mt-0.5 text-navy-950">{event.department_id}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">Coordinator</dt>
+                        <dd className="mt-0.5 text-navy-950">{event.coordinator_id}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">
+                          Co-Coordinator
+                        </dt>
+                        <dd className="mt-0.5 text-navy-950">{event.co_coordinator_id ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">Venue</dt>
+                        <dd className="mt-0.5 text-navy-950">{event.venue ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">
+                          Scheduled At
+                        </dt>
+                        <dd className="mt-0.5 text-navy-950">{formatDate(event.scheduled_at)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">
+                          Chief Guest
+                        </dt>
+                        <dd className="mt-0.5 text-navy-950">{event.chief_guest ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">
+                          Expected Participants
+                        </dt>
+                        <dd className="mt-0.5 text-navy-950">{event.expected_participants ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">
+                          Participant Limit
+                        </dt>
+                        <dd className="mt-0.5 text-navy-950">{event.participant_limit ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">Created</dt>
+                        <dd className="mt-0.5 text-navy-950">{formatDate(event.created_at)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-bold uppercase tracking-[0.1em] text-navy-950/50">
+                          Last Updated
+                        </dt>
+                        <dd className="mt-0.5 text-navy-950">{formatDate(event.updated_at)}</dd>
+                      </div>
+                    </dl>
+                    <p className="mt-5 text-sm leading-relaxed text-navy-950/70">{event.description}</p>
+                    <Link
+                      href={`/dashboard/events/${event.id}`}
+                      className="mt-4 inline-block text-sm font-semibold text-gold-dark underline"
+                    >
+                      Open full event page →
+                    </Link>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

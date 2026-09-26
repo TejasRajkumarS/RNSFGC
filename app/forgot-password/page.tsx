@@ -72,13 +72,10 @@ export default function ForgotPasswordPage() {
 
         {sent ? (
           <div className="space-y-5">
-            <div
-              className="rounded-md bg-green-50 border border-green-200 p-4 text-sm text-green-700"
-              role="status"
-            >
-              A password reset link has been sent to <span className="font-semibold">{email}</span>. Open
-              the email and follow the link to set your new password. Remember to check your spam folder
-              if you do not see it within a few minutes.
+            <div className="rounded-md bg-green-50 border border-green-200 p-4 text-sm text-green-700" role="status">
+              A password reset link has been sent to <span className="font-semibold">{email}</span>. Open the email and
+              follow the link to set your new password. Remember to check your spam folder if you do not see it within a
+              few minutes.
             </div>
             <button
               type="button"

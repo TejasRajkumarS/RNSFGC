@@ -93,6 +93,7 @@ describe("Permission System", () => {
 
   testRolePerms("EVENT_COORDINATOR", [
     "dashboard.view",
+    "departments.view",
     "events.view",
     "events.create",
     "events.update",

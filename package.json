@@ -1,8 +1,8 @@
 {
-  "name": "rnsfc-landing",
+  "name": "rns-event-manager",
   "version": "1.0.0",
   "private": true,
-  "description": "Editorial landing page for RNS First Grade College (RNSFC)",
+  "description": "Event management web app for RNS First Grade College (RNSFC) — Next.js + Firebase with auth, Firestore, and storage",
   "engines": {
     "node": ">=22.6.0"
   },

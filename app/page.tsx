@@ -1,10 +1,10 @@
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import Section from "@/components/Section";
-import EventNavigation from "@/components/EventNavigation";
-import EventCarousel from "@/components/EventCarousel";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/layout/Navbar";
+import Hero from "@/components/layout/Hero";
+import Section from "@/components/layout/Section";
+import EventNavigation from "@/components/events/EventNavigation";
+import EventCarousel from "@/components/events/EventCarousel";
+import Footer from "@/components/layout/Footer";
 import { type CollegeEvent } from "@/data/events";
 import { listPublicEvents, toCollegeEvent } from "@/lib/services/events";
 import { getSessionUser } from "@/lib/auth/session";

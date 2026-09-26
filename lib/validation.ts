@@ -118,6 +118,13 @@ export const documentCreateSchema = z.object({
   url: z.string().url({ message: "Invalid URL" }),
 });
 
+export const registrationRequestSchema = z.object({
+  event_id: nonEmptyString,
+  full_name: nonEmptyString,
+  email: z.string().email({ message: "Invalid email address" }),
+  message: z.string().trim().max(1000, { message: "Message must be at most 1000 characters" }).optional(),
+});
+
 export function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
   const result = schema.safeParse(body);
   if (!result.success) {
